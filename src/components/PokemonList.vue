@@ -1,25 +1,35 @@
 <template>
-  <div class="pokemon--list">
-    <div class="pokemon--list-item" v-for="pokemon in pokemons" :key="pokemon.url">
-      <h3>
-        <router-link :to="'/pokemon/' + pokemon.id">{{ pokemon.name }}</router-link>
-      </h3>
-      <img
-        class="pokemon--list-img"
-        :src="'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + pokemon.id + '.png'" :alt="pokemon.url"
-      >
-      <button @click="addFavorite(pokemon)" v-if="!favorites[pokemon.id]">🤍</button>
-      <button @click="removeFavorite(pokemon)" v-if="favorites[pokemon.id]">❤️</button>
+  <div>
+    <div class="pokemon--list">
+      <div class="pokemon--list-item" v-for="pokemon in pokemons" :key="pokemon.url">
+        <h3>
+          <router-link :to="'/pokemon/' + pokemon.id">{{ pokemon.name }}</router-link>
+        </h3>
+        <img
+          v-if="!loading"
+          class="pokemon--list-img"
+          :src="'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + pokemon.id + '.png'" 
+          @error="replaceImg"
+        >
+        <img
+          v-if="loading"
+          class="pokemon--list-img empty--img"
+          :src="placeholderImg" :alt="pokemon.url"
+        >
+        <button @click="addFavorite(pokemon)" v-if="!favorites[pokemon.id]">🤍</button>
+        <button @click="removeFavorite(pokemon)" v-if="favorites[pokemon.id]">❤️</button>
+      </div>
     </div>
+    <ul v-if="pokemons.length" class="pagination">
+      <li v-if="previous">
+        <router-link :to="'/?' + this.previous">&#60;&#60; Back</router-link>
+      </li>
+      <li>Page: {{ Math.round($route.query.offset / 20) + 1 || 1}} of {{ Math.round(count / 20) }}</li>
+      <li v-if="next">
+        <router-link :to="'/?' +  this.next">Next &#62;&#62;</router-link>
+      </li>
+    </ul>
   </div>
-  <ul class="pagination">
-    <li>
-      <router-link :to="'/?' + this.previous">&#60;&#60; Back</router-link>
-    </li>
-    <li>
-      <router-link :to="'/?' +  this.next">Next &#62;&#62;</router-link>
-    </li>
-  </ul>
 </template>
 
 <script>
@@ -33,7 +43,10 @@ export default {
       count: 0,
       next: null,
       previous: null,
-      favorites: []
+      favorites: [],
+      user: null,
+      loading: false,
+      placeholderImg: 'https://i.pinimg.com/originals/95/d5/cd/95d5cded00f3a3e8a98fb1eed568aa9f.png'
     }
   },
 
@@ -49,7 +62,8 @@ export default {
   mounted() {
     this.getPokemons(this.$route.query.offset, this.$route.query.limit)
     try {
-      this.favorites = JSON.parse(localStorage.getItem('favorites'))
+      this.user = JSON.parse(localStorage.getItem('user'))
+      this.favorites = JSON.parse(localStorage.getItem(this.user.email))
       if (!this.favorites) {
         this.favorites = {}
       }
@@ -62,6 +76,7 @@ export default {
   methods: {
     getPokemons: async function(offset = 0, limit = 20) {
       try {
+        this.loading = true
         const response = await fetch(`https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`)
         const data = await response.json()
         this.pokemons = data.results.map(pokemon => {
@@ -71,18 +86,19 @@ export default {
           }
         })
         this.count = data.count
-        this.next = data.next?.split('?').at(-1)
-        this.previous = data.previous?.split('?').at(-1) || 'offset=0&limit=20'
+        this.next = data.next?.split('?').at(-1) || null
+        this.previous = data.previous?.split('?').at(-1) || null
+        this.loading = false        
       } catch (error) {
         console.error(error)
+        this.loading = false
       }
-      
     },
 
     addFavorite: async function(pokemon) {
       try {
         this.favorites[pokemon.id] = pokemon
-        localStorage.setItem('favorites', JSON.stringify(this.favorites))
+        localStorage.setItem(this.user.email, JSON.stringify(this.favorites))
       } catch (error) {
         console.error(error)
       }
@@ -91,11 +107,15 @@ export default {
     removeFavorite: async function(pokemon) {
       try {
         delete this.favorites[pokemon.id]
-        localStorage.setItem('favorites', JSON.stringify(this.favorites))
+        localStorage.setItem(this.user.email, JSON.stringify(this.favorites))
       } catch (error) {
         console.error(error)
       }
     },
+
+    replaceImg(e) {
+      e.target.src = this.placeholderImg
+    }
   }
 }
 </script>
@@ -114,11 +134,14 @@ export default {
   }
 
   .pokemon--list-img {
-    margin: auto;
+    margin: 5px auto;
+    width: 96px;
+    height: 96px;
   }
 
   h3 {
     margin: 10px 0 0;
+    font-size: 15px;
   }
 
   ul {
@@ -137,5 +160,14 @@ export default {
 
   .pagination {
     margin: 50px 0;
+  }
+
+  .empty--list {
+    margin: 20px 0;
+  }
+
+  .empty--img {
+    width: 96px;
+    height: 96px;
   }
 </style>

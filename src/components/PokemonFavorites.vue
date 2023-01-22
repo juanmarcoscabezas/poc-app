@@ -1,16 +1,19 @@
 <template>
-  <div class="pokemon--list">
-    <div class="pokemon--list-item" v-for="pokemon in favorites" :key="pokemon.url">
-      <h3>
-        <router-link :to="'/pokemon/' + pokemon.id">{{ pokemon.name }}</router-link>
-      </h3>
-      <img
-        class="pokemon--list-img"
-        :src="'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + pokemon.id + '.png'" :alt="pokemon.url"
-      >
-      <button @click="addFavorite(pokemon)" v-if="!favorites[pokemon.id]">🤍</button>
-      <button @click="removeFavorite(pokemon)" v-if="favorites[pokemon.id]">❤️</button>
+  <div>
+    <div class="pokemon--list">
+      <div class="pokemon--list-item" v-for="pokemon in favorites" :key="pokemon.url">
+        <h3>
+          <router-link :to="'/pokemon/' + pokemon.id">{{ pokemon.name }}</router-link>
+        </h3>
+        <img
+          class="pokemon--list-img"
+          :src="'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/' + pokemon.id + '.png'" :alt="pokemon.url"
+        >
+        <button @click="addFavorite(pokemon)" v-if="!favorites[pokemon.id]">🤍</button>
+        <button @click="removeFavorite(pokemon)" v-if="favorites[pokemon.id]">❤️</button>
+      </div>
     </div>
+    <h3 v-if="Object.keys(favorites).length === 0" class="empty--list">You don't have favorites yet</h3>
   </div>
 </template>
 
@@ -20,14 +23,16 @@ export default {
 
   data: function () {
     return {
-      favorites: []
+      favorites: [],
+      user: null,
     }
   },
 
 
   mounted() {
     try {
-      this.favorites = JSON.parse(localStorage.getItem('favorites'))
+      this.user = JSON.parse(localStorage.getItem('user'))
+      this.favorites = JSON.parse(localStorage.getItem(this.user.email))
       if (!this.favorites) {
         this.favorites = {}
       }
@@ -40,7 +45,7 @@ export default {
     addFavorite: async function(pokemon) {
       try {
         this.favorites[pokemon.id] = pokemon
-        localStorage.setItem('favorites', JSON.stringify(this.favorites))
+        localStorage.setItem(this.user.email, JSON.stringify(this.favorites))
       } catch (error) {
         console.error(error)
       }
@@ -49,7 +54,8 @@ export default {
     removeFavorite: async function(pokemon) {
       try {
         delete this.favorites[pokemon.id]
-        localStorage.setItem('favorites', JSON.stringify(this.favorites))
+        localStorage.setItem(this.user.email, JSON.stringify(this.favorites))
+        console.log(this.favorites)
       } catch (error) {
         console.error(error)
       }
@@ -77,6 +83,7 @@ export default {
 
   h3 {
     margin: 10px 0 0;
+    font-size: 15px;
   }
 
   ul {
@@ -93,7 +100,8 @@ export default {
     color: #42b983;
   }
 
-  .pagination {
-    margin: 50px 0;
+  .empty--list {
+    width: 100%;
+    text-align: center;
   }
 </style>

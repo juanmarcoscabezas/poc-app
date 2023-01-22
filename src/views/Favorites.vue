@@ -1,14 +1,14 @@
 <template>
-  <PokemonList />
+  <PokemonFavorites />
 </template>
 
 <script>
-import PokemonList from '@/components/PokemonFavorites.vue'
+import PokemonFavorites from '@/components/PokemonFavorites.vue'
 
 export default {
   name: 'Favorites',
   components: {
-    PokemonList
+    PokemonFavorites
   }
 }
 </script>

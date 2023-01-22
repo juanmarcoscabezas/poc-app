@@ -1,16 +1,30 @@
 <template>
-  <Nav></Nav>
   <router-view></router-view>
 </template>
 
 <script>
-import Nav from './components/Nav.vue'
 
 export default {
   name: 'App',
-  components: {
-    Nav
-  }
+
+  created() {
+    this.$watch(
+      () => this.$route.name,
+      () => {
+        try {
+          const user = JSON.parse(localStorage.getItem('user'))
+          if (!user.isLoggedIn) {
+            this.$router.push('/login')
+          }
+          if (user.isLoggedIn && this.$route.name === 'Login') {
+            this.$router.push('/')
+          }
+        } catch (error) {
+          this.$router.push('/login')
+        }
+      }
+    )
+  },
 }
 </script>
 
