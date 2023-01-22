@@ -3,6 +3,8 @@ Frontend Home Work
 
 https://juan-pokemon.surge.sh/
 
+![](https://raw.githubusercontent.com/juanmarcoscabezas/poc-app/main/src/assets/poke.gif)
+
 ## Project setup
 ```
 npm install
@@ -44,5 +46,3 @@ touches on each item in the home page list. This page should open in a new page.
 -   &#9745; Change the dummy tab to show the favorite list.
 -   &#9745; Animate transition between home and detail page.
 -   &#9745; If it’s a web app => Deploy it into any free service such as netlify or vercel.
-
-![](https://raw.githubusercontent.com/juanmarcoscabezas/poc-app/main/src/assets/poke.gif)
